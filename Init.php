@@ -2,17 +2,25 @@
 
 namespace PhmLabs\Components\Init;
 
-/*
+/**
  * @author Nils Langner <nils.langner@phmlabs.com>
  * @link http://www.phmlabs.com/Components/NamedParameters
- */
+ **/
 use PhmLabs\Components\NamedParameters\NamedParameters;
 
 class Init
 {
-    public static function getInitInformation($element)
+    public static function getInitInformationByClass($classname)
     {
-        $rClass = new \ReflectionClass($element["class"]);
+        $rClass = new \ReflectionClass($classname);
+
+        preg_match_all("/\* ([^@](.*))/", $rClass->getDocComment(), $matches);
+
+        if ($matches[1]) {
+            $classDoc = implode("\n", $matches[1]);
+        } else {
+            $classDoc = false;
+        }
 
         $parameters = array();
 
@@ -31,22 +39,28 @@ class Init
                 if (array_key_exists("1", $matches)) {
                     $type = trim(str_replace("$", "", $matches[1]));
                 } else {
-                    $type = "not defined";
+                    $type = false;
                 }
 
                 if (array_key_exists("2", $matches)) {
                     $descritpion = trim(str_replace("$", "", $matches[2]));
                 } else {
-                    $descritpion = "not defined";
+                    $descritpion = false;
                 }
 
-                $parameters = array("name" => $rParameter->getName(),
+                $parameters[] = array("name" => $rParameter->getName(),
                     "description" => $descritpion,
-                    "type" => $type);
+                    "type" => $type,
+                    "default" => $rParameter->getDefaultValue());
             }
         }
 
-        return $parameters;
+        return array("parameters" => $parameters, 'documentation' => $classDoc);
+    }
+
+    public static function getInitInformation($element)
+    {
+        return self::getInitInformationByClass($element["class"]);
     }
 
     public static function getAllInitInformation($configArray)
