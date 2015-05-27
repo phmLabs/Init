@@ -11,13 +11,6 @@
   "homepage": "https://www.thewebhatesme.com",
   "license": "MIT",
 
-  "repositories": [
-    {
-      "type": "vcs",
-      "url": "https://github.com/phmLabs/NamedParameters"
-    }
-  ],
-
   "require": {
     "symfony/yaml": "~2.2",
     "phmlabs/namedparameters": "dev-master"
