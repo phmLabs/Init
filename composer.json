@@ -2,6 +2,7 @@
   "name": "phmlabs/init",
   
   "minimum-stability": "dev",
+  "prefer-stable": true,
   
   "version": "1.0.0",
   "type": "library",
@@ -18,8 +19,8 @@
   ],
 
   "require": {
-    "symfony/yaml": "~2.2"
-    
+    "symfony/yaml": "~2.2",
+    "phmlabs/namedparameters": "dev-master"
   },
 
   "autoload": {
