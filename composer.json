@@ -16,7 +16,7 @@
 
   "require": {
     "symfony/yaml": "~2.2"
-  },d
+  },
 
   "require-dev": {
     "phmlabs/namedparameters": "dev-master"
