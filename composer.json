@@ -13,7 +13,7 @@
 
   "require": {
     "symfony/yaml": "~2.2",
-    "phmlabs/namedparameters": "dev-master"
+    "phmlabs/namedparameters": "1.0.0"
   },
 
   "autoload": {
