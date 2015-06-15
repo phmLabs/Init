@@ -10,6 +10,13 @@ use PhmLabs\Components\NamedParameters\NamedParameters;
 
 class Init
 {
+    private static $globalParameters = array();
+
+    public static function registerGlobalParameter($key, $value)
+    {
+        self::$globalParameters[$key] = $value;
+    }
+
     public static function getInitInformationByClass($classname)
     {
         $rClass = new \ReflectionClass($classname);
@@ -43,15 +50,21 @@ class Init
                 }
 
                 if (array_key_exists("2", $matches)) {
-                    $descritpion = trim(str_replace("$", "", $matches[2]));
+                    $description = trim(str_replace("$", "", $matches[2]));
                 } else {
-                    $descritpion = false;
+                    $description = false;
+                }
+
+                if($rParameter->isOptional()) {
+                    $defaultValue =  $rParameter->getDefaultValue();
+                }else{
+                    $defaultValue = "";
                 }
 
                 $parameters[] = array("name" => $rParameter->getName(),
-                    "description" => $descritpion,
+                    "description" => $description,
                     "type" => $type,
-                    "default" => $rParameter->getDefaultValue());
+                    "default" => $defaultValue);
             }
         }
 
@@ -74,6 +87,10 @@ class Init
 
     public static function initialize($element)
     {
+        if (!array_key_exists("class", $element)) {
+            throw new \RuntimeException("the given array does not provide an element with 'class' as key");
+        }
+
         $class = $element['class'];
 
         if (!class_exists($class)) {
@@ -84,10 +101,11 @@ class Init
 
         if (method_exists($object, 'init')) {
             if (array_key_exists('parameters', $element)) {
-                NamedParameters::call([$object, 'init'], $element['parameters']);
+                $parameters = array_merge($element['parameters'], self::$globalParameters);
             } else {
-                $object->init();
+                $parameters = self::$globalParameters;
             }
+            NamedParameters::call([$object, 'init'], $parameters);
         }
         return $object;
     }
