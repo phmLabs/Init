@@ -1,7 +1,6 @@
 {
   "name": "phmlabs/init",
   
-  "minimum-stability": "dev",
   "prefer-stable": true,
   
   "version": "1.0.0",
