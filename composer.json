@@ -3,7 +3,7 @@
   
   "prefer-stable": true,
   
-  "version": "1.0.0",
+  "version": "1.0.1",
   "type": "library",
   "description": "phmLabs component for initializing class using a yaml file / array",
   "keywords": [],
@@ -11,7 +11,6 @@
   "license": "MIT",
 
   "require": {
-    "symfony/yaml": "~2.2",
     "phmlabs/namedparameters": "1.0.0"
   },
 
