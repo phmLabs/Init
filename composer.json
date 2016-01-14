@@ -1,7 +1,5 @@
 {
   "name": "phmlabs/init",
-  
-  "prefer-stable": true,
 
   "type": "library",
   "description": "phmLabs component for initializing class using a yaml file / array",
