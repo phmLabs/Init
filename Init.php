@@ -6,6 +6,7 @@ namespace PhmLabs\Components\Init;
  * @author Nils Langner <nils.langner@phmlabs.com>
  * @link http://www.phmlabs.com/Components/NamedParameters
  **/
+
 use PhmLabs\Components\NamedParameters\NamedParameters;
 
 class Init
@@ -17,7 +18,7 @@ class Init
         self::$globalParameters[$key] = $value;
     }
 
-    public static function getInitInformationByClass($classname)
+    public static function getInitInformationByClass($classname, $initMethod)
     {
         $rClass = new \ReflectionClass($classname);
 
@@ -31,9 +32,9 @@ class Init
 
         $parameters = array();
 
-        if ($rClass->hasMethod("init")) {
+        if ($rClass->hasMethod($initMethod)) {
 
-            $rMethod = $rClass->getMethod("init");
+            $rMethod = $rClass->getMethod($initMethod);
             $rParameters = $rMethod->getParameters();
 
             $parameters = array();
@@ -55,9 +56,9 @@ class Init
                     $description = false;
                 }
 
-                if($rParameter->isOptional()) {
-                    $defaultValue =  $rParameter->getDefaultValue();
-                }else{
+                if ($rParameter->isOptional()) {
+                    $defaultValue = $rParameter->getDefaultValue();
+                } else {
                     $defaultValue = "";
                 }
 
@@ -85,13 +86,13 @@ class Init
         return $infos;
     }
 
-    public static function initialize($element)
+    public static function initialize($element, $classNameField = 'class', $initMethod = 'init')
     {
-        if (!array_key_exists("class", $element)) {
-            throw new \RuntimeException("the given array does not provide an element with 'class' as key");
+        if (!array_key_exists($classNameField, $element)) {
+            throw new \RuntimeException("The given array does not provide an element with '" . $classNameField . "' as key.");
         }
 
-        $class = $element['class'];
+        $class = $element[$classNameField];
 
         if (!class_exists($class)) {
             throw new \RuntimeException("No class with name " . $class . " found");
@@ -99,13 +100,13 @@ class Init
 
         $object = new $class();
 
-        if (method_exists($object, 'init')) {
+        if (method_exists($object, $initMethod)) {
             if (array_key_exists('parameters', $element)) {
                 $parameters = array_merge($element['parameters'], self::$globalParameters);
             } else {
                 $parameters = self::$globalParameters;
             }
-            NamedParameters::call([$object, 'init'], $parameters);
+            NamedParameters::call([$object, $initMethod], $parameters);
         }
         return $object;
     }
@@ -116,11 +117,11 @@ class Init
      * @param $configArray
      * @return objects[]
      */
-    public static function initializeAll($configArray)
+    public static function initializeAll($configArray, $classNameField = 'class', $initMethod = 'init')
     {
         $objects = array();
         foreach ($configArray as $name => $element) {
-            $objects[$name] = self::initialize($element);
+            $objects[$name] = self::initialize($element, $classNameField, $initMethod);
         }
         return $objects;
     }
