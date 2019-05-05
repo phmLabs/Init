@@ -11,6 +11,8 @@ use PhmLabs\Components\NamedParameters\NamedParameters;
 
 class Init
 {
+    const METHOD_CONSTRUCTOR = '__construct';
+
     private static $globalParameters = array();
 
     public static function registerGlobalParameter($key, $value)
@@ -18,7 +20,7 @@ class Init
         self::$globalParameters[$key] = $value;
     }
 
-    public static function getInitInformationByClass($classname, $initMethod)
+    public static function getInitInformationByClass($classname)
     {
         $rClass = new \ReflectionClass($classname);
 
@@ -32,9 +34,9 @@ class Init
 
         $parameters = array();
 
-        if ($rClass->hasMethod($initMethod)) {
+        if ($rClass->hasMethod("init")) {
 
-            $rMethod = $rClass->getMethod($initMethod);
+            $rMethod = $rClass->getMethod("init");
             $rParameters = $rMethod->getParameters();
 
             $parameters = array();
@@ -86,28 +88,63 @@ class Init
         return $infos;
     }
 
-    public static function initialize($element, $classNameField = 'class', $initMethod = 'init')
+    /**
+     * @param $element
+     * @return mixed
+     * @throws \PhmLabs\Components\NamedParameters\Exception
+     * @throws \ReflectionException
+     */
+    public static function initialize($element)
     {
-        if (!array_key_exists($classNameField, $element)) {
-            throw new \RuntimeException("The given array does not provide an element with '" . $classNameField . "' as key.");
+        if (!array_key_exists("class", $element)) {
+            throw new \RuntimeException("the given array does not provide an element with 'class' as key");
         }
 
-        $class = $element[$classNameField];
+        $class = $element['class'];
+
+        if (!array_key_exists('call', $element)) {
+            $element['call'] = [];
+        }
 
         if (!class_exists($class)) {
             throw new \RuntimeException("No class with name " . $class . " found");
         }
 
-        $object = new $class();
+        if (array_key_exists('parameters', $element)) {
+            $element['call']['init'] = $element['parameters'];
+            unset($element['parameters']);
+        }
 
-        if (method_exists($object, $initMethod)) {
-            if (array_key_exists('parameters', $element)) {
-                $parameters = array_merge($element['parameters'], self::$globalParameters);
+        if (array_key_exists('call', $element) && array_key_exists(self::METHOD_CONSTRUCTOR, $element['call'])) {
+            $object = NamedParameters::construct($class, $element['call'][self::METHOD_CONSTRUCTOR]);
+            unset ($element['call'][self::METHOD_CONSTRUCTOR]);
+        } else {
+            $object = new $class();
+
+            if (count($element['call']) === 0) {
+                $element['call']['init'] = [];
+            }
+        }
+
+        foreach ($element['call'] as $methodName => $parameters) {
+            if (method_exists($object, $methodName)) {
+                $newParameters = [];
+                foreach ($parameters as $key => $newParameter) {
+                    if (is_array($newParameter) && array_key_exists('class', $newParameter)) {
+                        $newParameters[$key] = self::initialize($newParameter);
+                    } else {
+                        $newParameters[$key] = $newParameter;
+                    }
+                }
+
+                $parameters = array_merge($newParameters, self::$globalParameters);
             } else {
                 $parameters = self::$globalParameters;
             }
-            NamedParameters::call([$object, $initMethod], $parameters);
+
+            NamedParameters::call([$object, $methodName], $parameters);
         }
+
         return $object;
     }
 
@@ -117,11 +154,11 @@ class Init
      * @param $configArray
      * @return objects[]
      */
-    public static function initializeAll($configArray, $classNameField = 'class', $initMethod = 'init')
+    public static function initializeAll($configArray)
     {
         $objects = array();
         foreach ($configArray as $name => $element) {
-            $objects[$name] = self::initialize($element, $classNameField, $initMethod);
+            $objects[$name] = self::initialize($element);
         }
         return $objects;
     }
