@@ -121,7 +121,7 @@ class Init
         } else {
             $object = new $class();
 
-            if (count($element['call']) === 0) {
+            if (count($element['call']) === 0 && method_exists($object, 'init')) {
                 $element['call']['init'] = [];
             }
         }
