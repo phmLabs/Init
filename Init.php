@@ -94,20 +94,20 @@ class Init
      * @throws \PhmLabs\Components\NamedParameters\Exception
      * @throws \ReflectionException
      */
-    public static function initialize($element)
+    public static function initialize($element, $classParameter = 'class')
     {
-        if (!array_key_exists("class", $element)) {
-            throw new \RuntimeException("the given array does not provide an element with 'class' as key");
+        if (!array_key_exists($classParameter, $element)) {
+            throw new Exception("The given array does not provide an element with '" . $classParameter . "' as key. Given keys are: " . implode(', ', array_keys($element)) . '.');
         }
 
-        $class = $element['class'];
+        $class = $element[$classParameter];
 
         if (!array_key_exists('call', $element)) {
             $element['call'] = [];
         }
 
         if (!class_exists($class)) {
-            throw new \RuntimeException("No class with name " . $class . " found");
+            throw new Exception("No class with name " . $class . " found");
         }
 
         if (array_key_exists('parameters', $element)) {
@@ -130,7 +130,7 @@ class Init
             if (method_exists($object, $methodName)) {
                 $newParameters = [];
                 foreach ($parameters as $key => $newParameter) {
-                    if (is_array($newParameter) && array_key_exists('class', $newParameter)) {
+                    if (is_array($newParameter) && array_key_exists($classParameter, $newParameter)) {
                         $newParameters[$key] = self::initialize($newParameter);
                     } else {
                         $newParameters[$key] = $newParameter;
