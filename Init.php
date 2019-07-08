@@ -96,6 +96,10 @@ class Init
      */
     public static function initialize($element, $classParameter = 'class')
     {
+        if (is_object($element)) {
+            throw  new Exception('The given $element parameter must be an array, class ' . get_class($element) . ' given.');
+        }
+
         if (!array_key_exists($classParameter, $element)) {
             throw new Exception("The given array does not provide an element with '" . $classParameter . "' as key. Given keys are: " . implode(', ', array_keys($element)) . '.');
         }
