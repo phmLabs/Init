@@ -97,7 +97,11 @@ class Init
     public static function initialize($element, $classParameter = 'class')
     {
         if (is_object($element)) {
-            throw  new Exception('The given $element parameter must be an array, class ' . get_class($element) . ' given.');
+            throw new Exception('The given $element parameter must be an array, class ' . get_class($element) . ' given.');
+        }
+
+        if (is_null($element)) {
+            throw new Exception('The given $element parameter must be an array, null given.');
         }
 
         if (!array_key_exists($classParameter, $element)) {
@@ -162,7 +166,11 @@ class Init
     {
         $objects = array();
         foreach ($configArray as $name => $element) {
-            $objects[$name] = self::initialize($element);
+            try {
+                $objects[$name] = self::initialize($element);
+            } catch (\Exception $e) {
+                throw new \RuntimeException('Unable to initialize "' . $name . '" (message: ' . lcfirst($e->getMessage()) . ')');
+            }
         }
         return $objects;
     }
